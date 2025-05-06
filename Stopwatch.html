@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stopwatch</title>
+  <h1 >Stopwatch</h1>
+  <style>
+    h1{
+      font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+    }
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .ring-container {
+      position: relative;
+      width: 250px;
+      height: 250px;
+      margin-bottom: 30px;
+    }
+
+    svg {
+      transform: rotate(-90deg);
+    }
+
+    .ring-bg {
+      stroke: #222;
+    }
+
+    .ring {
+      stroke: url(#gradient);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+
+    .time-display {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .buttons button {
+      width: 100px;
+      height: 100px;
+      font-size: 4rem;
+      background: #222222;
+      color: hwb(189 14% 6%); /* Purple color */
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .buttons button:hover {
+      background: #333;
+    }
+
+    .button-name {
+      font-size: 1.5rem;
+      color: white;
+      margin-top: 5px;
+    }
+
+    .laps {
+      width: 250px;
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+      font-size: 1.5rem;
+      border-top: 1px solid #444;
+      padding-top: 10px;
+    }
+
+    .laps div {
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="ring-container">
+    <svg width="250" height="250">
+      <defs>
+        <linearGradient id="gradient" x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ff00cc" />
+          <stop offset="100%" stop-color="#3399ff" />
+        </linearGradient>
+      </defs>
+      <circle cx="125" cy="125" r="110" stroke-width="10" fill="none" class="ring-bg"/>
+      <circle id="progress" cx="125" cy="125" r="110" stroke-width="10" fill="none"
+              class="ring" stroke-dasharray="690" stroke-dashoffset="690"/>
+    </svg>
+    <div class="time-display" id="display">00:00:00.00</div>
+  </div>
+
+  <div class="buttons">
+    <div class="button-container">
+      <button id="lap">🔁</button>
+      <div class="button-name">Lap</div>
+    </div>
+    <div class="button-container">
+      <button id="toggle">▶️</button>
+      <div class="button-name" id="toggleText">Start</div>
+    </div>
+    <div class="button-container">
+      <button id="reset">&#x21bb;</button> <!-- Reset symbol -->
+      <div class="button-name">Reset</div>
+    </div>
+  </div>
+
+  <div class="laps" id="laps"></div>
+
+  <script>
+    let startTime = 0;
+    let elapsedTime = 0;
+    let timerInterval;
+    let isRunning = false;
+    let lapCount = 0;
+
+    const display = document.getElementById("display");
+    const toggleBtn = document.getElementById("toggle");
+    const toggleText = document.getElementById("toggleText");
+    const resetBtn = document.getElementById("reset");
+    const lapBtn = document.getElementById("lap");
+    const lapsContainer = document.getElementById("laps");
+    const ring = document.getElementById("progress");
+
+    const circumference = 2 * Math.PI * 110;
+    ring.setAttribute("stroke-dasharray", circumference);
+
+    function pad(n, z = 2) {
+      return n.toString().padStart(z, '0');
+    }
+
+    function timeToString(time) {
+      let hh = Math.floor(time / 3600000);
+      let mm = Math.floor((time % 3600000) / 60000);
+      let ss = Math.floor((time % 60000) / 1000);
+      let ms = Math.floor((time % 1000) / 10);
+      return `${pad(hh)}:${pad(mm)}:${pad(ss)}.${pad(ms, 2)}`;
+    }
+
+    function updateDisplay() {
+      display.textContent = timeToString(elapsedTime);
+      const loopProgress = (elapsedTime % 60000) / 60000; // Loop every 60s
+      const offset = circumference * (1 - loopProgress);
+      ring.style.strokeDashoffset = offset;
+    }
+
+    function startTimer() {
+      startTime = Date.now() - elapsedTime;
+      timerInterval = setInterval(() => {
+        elapsedTime = Date.now() - startTime;
+        updateDisplay();
+      }, 10);
+      isRunning = true;
+      toggleBtn.textContent = "⏸️";
+      toggleText.textContent = "Pause";
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      toggleBtn.textContent = "▶️";
+      toggleText.textContent = "Start";
+    }
+
+    function resetTimer() {
+      stopTimer();
+      elapsedTime = 0;
+      updateDisplay();
+      lapsContainer.innerHTML = "";
+      lapCount = 0;
+    }
+
+    function recordLap() {
+      if (!isRunning) return;
+      lapCount++;
+      const lapTime = timeToString(elapsedTime);
+      const lapElement = document.createElement("div");
+      lapElement.textContent = `Lap ${lapCount}: ${lapTime}`;
+      lapsContainer.prepend(lapElement);
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      isRunning ? stopTimer() : startTimer();
+    });
+
+    resetBtn.addEventListener("click", resetTimer);
+    lapBtn.addEventListener("click", recordLap);
+
+    updateDisplay(); // Initialize ring and time
+  </script>
+</body>
+</html>
