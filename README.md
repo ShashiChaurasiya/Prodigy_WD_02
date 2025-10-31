@@ -2,7 +2,7 @@
 
 # ⏱️ Stopwatch Web App
 
-A modern and animated stopwatch web application built using **HTML**, **CSS**, and **JavaScript**. This project is part of **Prodigy Infotech Task 2** and showcases real-time time tracking with lap functionality and an animated circular ring.
+A modern and animated stopwatch web application built using **HTML**, **CSS**, and **JavaScript**. This project is part of **Prodigy Infotech Task 2** and showcases real-time time tracking with lap functionality and an animated circular ring.   
 
 ## 🔧 Features
 
