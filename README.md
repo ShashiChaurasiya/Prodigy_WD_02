@@ -16,5 +16,5 @@ A modern and animated stopwatch web application built using **HTML**, **CSS**, a
 
 - **HTML** – Structure of the webpage
 - **CSS** – Styling, layout, and SVG animations
-- **JavaScript** – Time logic and user interaction
+- **JavaScript** – Time logic and user interaction   
 
